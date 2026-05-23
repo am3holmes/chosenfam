@@ -768,35 +768,150 @@ export default function ChosenFam() {
 
                   {/* Action footer */}
                   <div style={{ padding:"16px 20px", borderTop:`1px solid ${C.border}`,
-                    background:C.panel, display:"flex", flexDirection:"column", gap:10 }}>
+                    background:C.panel, display:"flex", flexDirection:"column", gap:12 }}>
 
-                    <div style={{ fontWeight:700, fontSize:14, color:C.ink, marginBottom:4 }}>
-                      What's next
+                    {/* Header */}
+                    <div style={{ ...SERIF, fontSize:18, color:C.navy, fontWeight:600 }}>
+                      Your decree is ready. What would you like to do?
                     </div>
 
-                    {/* Copy button */}
-                    <button onClick={copyDecree} style={{
-                      padding:"12px", borderRadius:30, border:`1.5px solid ${C.navy}`,
-                      background:copied?C.sage:"transparent", color:copied?C.white:C.navy,
-                      fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.18s",
-                    }}>
-                      {copied ? "✓ Copied to clipboard" : "Copy full decree"}
-                    </button>
+                    {/* ── TIER 1: Free copy ── */}
+                    <div style={{ background:C.white, borderRadius:14, padding:"14px 16px",
+                      border:`1px solid ${C.border}` }}>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        alignItems:"center", marginBottom:6 }}>
+                        <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>
+                          Copy the text
+                        </div>
+                        <span style={{ fontSize:12, fontWeight:700, color:C.sage,
+                          background:C.sagePl, padding:"2px 10px", borderRadius:20 }}>Free</span>
+                      </div>
+                      <div style={{ fontSize:12, color:C.muted, marginBottom:10, lineHeight:1.5 }}>
+                        Copy the full decree text and paste it into any document editor.
+                      </div>
+                      <button onClick={copyDecree} style={{
+                        width:"100%", padding:"10px", borderRadius:30,
+                        border:`1.5px solid ${C.navy}`,
+                        background:copied?C.sage:"transparent",
+                        color:copied?C.white:C.navy,
+                        fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.18s",
+                        fontFamily:"'DM Sans',sans-serif",
+                      }}>
+                        {copied ? "✓ Copied to clipboard" : "Copy full decree"}
+                      </button>
+                    </div>
 
-                    {/* Send to partner */}
+                    {/* ── TIER 2: $29 Court-Ready PDF ── */}
+                    <div style={{ background:C.navyLt, borderRadius:14, padding:"14px 16px",
+                      border:`2px solid ${C.navy}` }}>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        alignItems:"center", marginBottom:6 }}>
+                        <div style={{ fontWeight:700, fontSize:14, color:C.navy }}>
+                          Get the court-ready document
+                        </div>
+                        <span style={{ ...SERIF, fontSize:16, fontWeight:700, color:C.navy }}>
+                          $29
+                        </span>
+                      </div>
+                      <div style={{ fontSize:12, color:C.body, marginBottom:10, lineHeight:1.55 }}>
+                        Properly formatted with your county header, signature blocks,
+                        page numbers, and filing instructions. Delivered to your inbox
+                        within 24 hours.
+                      </div>
+                      <div style={{ fontSize:11, color:C.muted, marginBottom:10 }}>
+                        ◈ Court-formatted document &nbsp;·&nbsp;
+                        ◈ Filing checklist &nbsp;·&nbsp;
+                        ◈ Cover letter template
+                      </div>
+                      <button onClick={()=>{ setSD(false); setSPDF(true); }}
+                        style={{ width:"100%", padding:"11px", borderRadius:30, border:"none",
+                          background:`linear-gradient(135deg,${C.navy},${C.navyMid})`,
+                          color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                          boxShadow:"0 4px 14px rgba(24,56,90,0.25)",
+                          fontFamily:"'DM Sans',sans-serif" }}>
+                        Get court-ready document — $29 →
+                      </button>
+                    </div>
+
+                    {/* ── TIER 3: $149 Mediator Review ── */}
+                    <div style={{ background:C.goldPl, borderRadius:14, padding:"14px 16px",
+                      border:`1px solid rgba(181,120,24,0.25)` }}>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        alignItems:"center", marginBottom:6 }}>
+                        <div style={{ fontWeight:700, fontSize:14, color:C.gold }}>
+                          Mediator document review
+                        </div>
+                        <span style={{ ...SERIF, fontSize:16, fontWeight:700, color:C.gold }}>
+                          $149
+                        </span>
+                      </div>
+                      <div style={{ fontSize:12, color:C.body, marginBottom:10, lineHeight:1.55 }}>
+                        A certified mediator reviews your decree — flags missing clauses,
+                        ambiguous language, and anything a judge would question.
+                        Marked-up version with plain-English notes within 48 hours.
+                      </div>
+                      <button onClick={()=>{
+                          setSD(false);
+                          window.open(STRIPE.review,"_blank");
+                        }}
+                        style={{ width:"100%", padding:"11px", borderRadius:30, border:"none",
+                          background:`linear-gradient(135deg,${C.gold},${C.goldMid})`,
+                          color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                          boxShadow:"0 4px 14px rgba(181,120,24,0.25)",
+                          fontFamily:"'DM Sans',sans-serif" }}>
+                        Get mediator review — $149 →
+                      </button>
+                    </div>
+
+                    {/* ── TIER 4: Sessions ── */}
+                    <div style={{ background:C.white, borderRadius:14, padding:"14px 16px",
+                      border:`1px solid ${C.border}` }}>
+                      <div style={{ fontWeight:700, fontSize:14, color:C.teal, marginBottom:4 }}>
+                        Need a real conversation?
+                      </div>
+                      <div style={{ fontSize:12, color:C.muted, marginBottom:10, lineHeight:1.55 }}>
+                        When the decree isn't the problem — the conversation is.
+                        Book a live mediation session.
+                      </div>
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <button onClick={()=>{ setSD(false); setScreen("sessions"); }}
+                          style={{ flex:1, padding:"10px", borderRadius:30,
+                            border:`1.5px solid ${C.teal}`,
+                            background:"transparent", color:C.teal,
+                            fontSize:12, fontWeight:700, cursor:"pointer",
+                            fontFamily:"'DM Sans',sans-serif" }}>
+                          See session options
+                        </button>
+                        <button onClick={()=> window.open(DISCOVERY,"_blank")}
+                          style={{ flex:1, padding:"10px", borderRadius:30,
+                            border:`1.5px solid ${C.teal}`,
+                            background:C.teal, color:C.white,
+                            fontSize:12, fontWeight:700, cursor:"pointer",
+                            fontFamily:"'DM Sans',sans-serif" }}>
+                          Free discovery call →
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ── Send to partner ── */}
                     {!partnerLink ? (
-                      <Btn v="gold" onClick={sendLink}>
+                      <button onClick={sendLink}
+                        style={{ width:"100%", padding:"11px", borderRadius:30,
+                          border:`1.5px solid ${C.gold}`,
+                          background:"transparent", color:C.gold,
+                          fontSize:13, fontWeight:700, cursor:"pointer",
+                          fontFamily:"'DM Sans',sans-serif" }}>
                         Send this to my partner →
-                      </Btn>
+                      </button>
                     ) : (
-                      <div style={{ background:C.white, borderRadius:14, padding:"16px",
+                      <div style={{ background:C.white, borderRadius:14, padding:"14px 16px",
                         border:`1px solid ${C.border}` }}>
-                        <div style={{ fontWeight:700, fontSize:14, color:C.navy, marginBottom:10 }}>
+                        <div style={{ fontWeight:700, fontSize:13, color:C.navy, marginBottom:8 }}>
                           Send to your partner
                         </div>
-                        <div style={{ fontSize:13, color:C.body, lineHeight:1.65, marginBottom:14 }}>
-                          They'll fill out their own version independently at ChosenFam.
-                          No login required. Free. Takes 15–30 minutes.
+                        <div style={{ fontSize:12, color:C.body, lineHeight:1.65, marginBottom:10 }}>
+                          They fill out their own version independently — free, no login required.
+                          Then you compare and see exactly where you agree.
                         </div>
                         <div style={{ marginBottom:10 }}>
                           <Lbl>Their email (optional)</Lbl>
@@ -806,51 +921,43 @@ export default function ChosenFam() {
                         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                           {partnerEmail && (
                             <button onClick={sendEmail} style={{
-                              flex:1, padding:"11px", borderRadius:30, border:"none",
+                              flex:1, padding:"10px", borderRadius:30, border:"none",
                               background:`linear-gradient(135deg,${C.gold},${C.goldMid})`,
-                              color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                              color:C.white, fontSize:12, fontWeight:700, cursor:"pointer",
+                              fontFamily:"'DM Sans',sans-serif",
                             }}>
-                              {emailSent ? "✓ Email opened" : "Send email invitation"}
+                              {emailSent ? "✓ Sent" : "Send email"}
                             </button>
                           )}
                           <button onClick={() => {
                             navigator.clipboard?.writeText(
-                              `Hi,\n\nI've filled out a proposed divorce decree on ChosenFam.\nWould you fill out your own version here? It's free and takes 15–30 minutes:\n\nhttps://chosenfam.com/build\n\nWhen we're both done we can see where we agree and where we need to talk.`
+                              `Hi,
+
+I've filled out a proposed divorce decree on ChosenFam.
+Would you fill out your own version here? It's free and takes 15–30 minutes:
+
+https://chosenfam.com/build
+
+When we're both done we can compare and see where we agree.`
                             );
                           }} style={{
-                            flex:1, padding:"11px", borderRadius:30,
+                            flex:1, padding:"10px", borderRadius:30,
                             border:`1.5px solid ${C.border}`,
                             background:"transparent", color:C.body,
-                            fontSize:13, fontWeight:600, cursor:"pointer",
+                            fontSize:12, fontWeight:600, cursor:"pointer",
+                            fontFamily:"'DM Sans',sans-serif",
                           }}>
-                            Copy invite message
+                            Copy message
                           </button>
-                        </div>
-                        <div style={{ marginTop:12, padding:"10px 12px",
-                          background:C.navyLt, borderRadius:10,
-                          fontSize:12, color:C.navy, lineHeight:1.6 }}>
-                          <strong>The link to share:</strong><br/>
-                          <span style={{ fontFamily:"monospace", fontSize:11 }}>
-                            chosenfam.com/build
-                          </span>
-                          <br/>
-                          <span style={{ fontSize:11, color:C.muted }}>
-                            They fill out their own version. You both get copies. Compare and discuss.
-                          </span>
                         </div>
                       </div>
                     )}
 
-                    <button onClick={() => { setSD(false); setScreen("sessions"); }}
-                      style={{ padding:"12px", borderRadius:30, border:`1px solid ${C.border}`,
-                        background:"transparent", color:C.muted, fontSize:13, cursor:"pointer" }}>
-                      Book a mediation session instead →
-                    </button>
-
                     <button onClick={() => setSD(false)}
                       style={{ padding:"10px", borderRadius:30, border:`1px solid ${C.border}`,
-                        background:"transparent", color:C.muted, fontSize:12, cursor:"pointer" }}>
-                      Close — keep editing
+                        background:"transparent", color:C.muted, fontSize:12, cursor:"pointer",
+                        fontFamily:"'DM Sans',sans-serif" }}>
+                      ← Keep editing
                     </button>
                   </div>
                 </div>
