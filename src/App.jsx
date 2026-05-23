@@ -384,7 +384,7 @@ const NAV = [
 // ─── CONFIG — replace these with your real links ─────────────────────────────
 const STRIPE = {
   doc:     "https://buy.stripe.com/dRm4gyh0GgpOarP3JdgUM04",     // $29 court-ready PDF
-  review:  "https://buy.stripe.com/cNicN411I4H66bz5RlgUM03",    // $149 paralegal review
+  review:  "https://buy.stripe.com/cNicN411I4H66bz5RlgUM03",    // $149 mediator document review
   session: "https://buy.stripe.com/aFa8wO6m2ddC57vcfJgUM00",    // $400 single session
   bundle:  "https://buy.stripe.com/7sY14mcKq2yY6bz6VpgUM02",   // $1,100 3-session bundle
   package: "https://buy.stripe.com/dRm00ih0GgpO9nL5RlgUM01",   // $1,800 decree package
@@ -403,6 +403,9 @@ export default function ChosenFam() {
   const [copied, setCopied] = useState(false);
   const [emailSent, setES]  = useState(false);
   const [partnerEmail, setPE] = useState("");
+  const [showPDFModal, setSPDF] = useState(false);
+  const [pdfEmail, setPDFEmail] = useState("");
+  const [pdfSubmitted, setPDFSub] = useState(false);
 
   const set = (id, v) => setData(d => ({ ...d, [id]: v }));
   const si  = STATES[state];
@@ -1100,25 +1103,26 @@ export default function ChosenFam() {
               },
               {
                 name:"Court-Ready Document", price:"$29", color:C.navy, badge:"One-time", highlight:true,
-                desc:"Your decree as a properly formatted court PDF — with your county header, signature blocks, page numbers, and filing instructions.",
+                desc:"Your completed decree formatted as a court-ready document — properly structured, with your county header, signature blocks, and state-specific filing instructions. Delivered to your inbox within 24 hours.",
                 features:[
                   "Everything in Free",
-                  "Properly formatted court PDF",
+                  "Court-formatted decree document",
                   "County-specific filing checklist",
-                  "Service of process instructions",
+                  "Service of process instructions for your state",
                   "Cover letter template",
+                  "Delivered to your email within 24 hours",
                   "One revision within 7 days",
                 ]
               },
               {
-                name:"Paralegal Review", price:"$149", color:C.gold, badge:"Most valuable", highlight:false,
-                desc:"A licensed paralegal reviews your completed decree within 48 hours and returns a marked-up version with flagged issues.",
+                name:"Mediator Document Review", price:"$149", color:C.gold, badge:"Most valuable", highlight:false,
+                desc:"A certified mediator reviews your completed decree for completeness, clarity, and workability — returning a marked-up version with plain-English notes within 48 hours.",
                 features:[
                   "Everything in Document",
-                  "48-hour paralegal review",
-                  "Flagged issues and missing clauses",
-                  "Plain-English revision notes",
-                  "One follow-up question answered",
+                  "48-hour mediator review",
+                  "Flagged issues, missing clauses, ambiguous language",
+                  "Plain-English notes from a certified mediator",
+                  "One follow-up question answered by your reviewer",
                 ]
               },
             ].map((p, i) => (
@@ -1146,9 +1150,19 @@ export default function ChosenFam() {
                     <span style={{ color:p.color, flexShrink:0 }}>◈</span><span>{f}</span>
                   </div>
                 ))}
+                {p.name === "Mediator Document Review" && (
+                  <div style={{ marginTop:12, padding:"10px 12px",
+                    background:C.navyLt, borderRadius:8,
+                    fontSize:11, color:C.navy, lineHeight:1.65, fontStyle:"italic" }}>
+                    This is a document review for completeness and clarity — not legal advice.
+                    We recommend having your final decree reviewed by a licensed attorney
+                    or your county's self-help legal clinic before filing.
+                  </div>
+                )}
                 <button onClick={()=>{
                     if(p.price==="$0") { setScreen("build"); return; }
-                    const links = { "$29":STRIPE.doc, "$149":STRIPE.review };
+                    if(p.price==="$29") { setSPDF(true); return; }
+                    const links = { "$149":STRIPE.review };
                     const link = links[p.price];
                     if(link && !link.startsWith("YOUR_")) window.open(link,"_blank");
                     else window.open("mailto:"+EMAIL+"?subject=ChosenFam "+p.name,"_blank");
@@ -1196,6 +1210,111 @@ export default function ChosenFam() {
         )}
 
       </main>
+
+      {/* ── PDF EMAIL CAPTURE MODAL ── */}
+      {showPDFModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(26,23,20,0.75)",
+          zIndex:300, display:"flex", alignItems:"center", justifyContent:"center",
+          padding:20 }}
+          onClick={e=>{ if(e.target===e.currentTarget){ setSPDF(false); setPDFSub(false); setPDFEmail(""); }}}>
+          <div style={{ background:C.white, borderRadius:20, width:"100%", maxWidth:420,
+            padding:28, boxShadow:"0 24px 80px rgba(0,0,0,0.4)" }}>
+            {!pdfSubmitted ? (
+              <>
+                <div style={{ ...SERIF, fontSize:22, color:C.navy, marginBottom:6, fontWeight:600 }}>
+                  Get your court-ready document
+                </div>
+                <div style={{ fontSize:13, color:C.body, lineHeight:1.75, marginBottom:20 }}>
+                  Enter your email below. We'll prepare your formatted decree document
+                  and send it to you within 24 hours — along with your state-specific
+                  filing checklist and cover letter.
+                </div>
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5,
+                    textTransform:"uppercase", color:C.muted, marginBottom:6 }}>
+                    Your email address
+                  </div>
+                  <input type="email" value={pdfEmail}
+                    onChange={e=>setPDFEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    style={{ width:"100%", padding:"12px 14px", borderRadius:10,
+                      border:`1.5px solid ${C.border}`, background:C.bg,
+                      fontSize:14, color:C.ink, outline:"none",
+                      fontFamily:"'DM Sans',sans-serif" }}
+                    onFocus={e=>e.target.style.borderColor=C.navy}
+                    onBlur={e=>e.target.style.borderColor=C.border}
+                  />
+                </div>
+                <div style={{ fontSize:11, color:C.muted, lineHeight:1.6, marginBottom:16,
+                  padding:"10px 12px", background:C.panel, borderRadius:8, fontStyle:"italic" }}>
+                  After submitting your email, you'll be taken to a secure checkout page ($29).
+                  Your document will be emailed to you within 24 hours of payment.
+                </div>
+                <button disabled={!pdfEmail || !pdfEmail.includes("@")}
+                  onClick={()=>{
+                    // Open Stripe with email pre-noted, then mark submitted
+                    window.open(STRIPE.doc + "?prefilled_email=" + encodeURIComponent(pdfEmail), "_blank");
+                    setPDFSub(true);
+                  }}
+                  style={{ width:"100%", padding:"13px", borderRadius:40, border:"none",
+                    background: pdfEmail && pdfEmail.includes("@")
+                      ? `linear-gradient(135deg,${C.navy},${C.navyMid})`
+                      : C.warm,
+                    color: pdfEmail && pdfEmail.includes("@") ? C.white : C.muted,
+                    fontSize:14, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif",
+                    boxShadow: pdfEmail ? "0 4px 16px rgba(24,56,90,0.25)" : "none",
+                    transition:"all 0.18s" }}>
+                  Continue to payment →
+                </button>
+                <button onClick={()=>{ setSPDF(false); setPDFEmail(""); }}
+                  style={{ width:"100%", marginTop:10, padding:"10px", borderRadius:40,
+                    border:`1px solid ${C.border}`, background:"transparent",
+                    color:C.muted, fontSize:12, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif" }}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ textAlign:"center", marginBottom:16 }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>✦</div>
+                  <div style={{ ...SERIF, fontSize:22, color:C.navy, marginBottom:8, fontWeight:600 }}>
+                    You're all set.
+                  </div>
+                  <div style={{ fontSize:13, color:C.body, lineHeight:1.75, marginBottom:16 }}>
+                    Complete your payment in the tab that just opened.
+                    Once payment is confirmed, we'll prepare your court-ready document
+                    and send it to <strong>{pdfEmail}</strong> within 24 hours.
+                  </div>
+                  <div style={{ background:C.sagePl, borderRadius:12, padding:"14px 16px",
+                    marginBottom:16, border:`1px solid rgba(46,92,58,0.15)` }}>
+                    <div style={{ fontSize:12, color:C.sage, lineHeight:1.7 }}>
+                      <strong>What you'll receive:</strong><br/>
+                      ◈ Your formatted decree document<br/>
+                      ◈ County-specific filing checklist<br/>
+                      ◈ Service of process instructions<br/>
+                      ◈ Cover letter template<br/>
+                      ◈ One revision if needed
+                    </div>
+                  </div>
+                  <div style={{ fontSize:11, color:C.muted, lineHeight:1.6, fontStyle:"italic" }}>
+                    Questions? Email us at hello@chosenfam.com
+                  </div>
+                </div>
+                <button onClick={()=>{ setSPDF(false); setPDFSub(false); setPDFEmail(""); }}
+                  style={{ width:"100%", padding:"12px", borderRadius:40,
+                    background:C.navy, border:"none", color:C.white,
+                    fontSize:13, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif" }}>
+                  Back to ChosenFam
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
