@@ -190,11 +190,13 @@ const DECREE_SECTIONS = [
 const SERIF = { fontFamily:"'Lora',Georgia,serif" };
 const SANS  = { fontFamily:"'DM Sans',system-ui,sans-serif" };
 
-function Card({ children, style={}, accent, bg }) {
-  return <div style={{
+function Card({ children, style={}, accent, bg, onClick }) {
+  return <div onClick={onClick} style={{
     background:bg||C.white, borderRadius:18,
     border:`1px solid ${accent||C.border}`,
-    padding:"20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", ...style,
+    padding:"20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
+    cursor:onClick?"pointer":"default",
+    ...style,
   }}>{children}</div>;
 }
 
