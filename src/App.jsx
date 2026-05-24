@@ -358,7 +358,7 @@ NEXT STEPS
 
 3. Book a session if you need one.
    1 session: $400 · 3-session bundle: $1,100 · Full Decree Package: $1,800
-   chosenfam.com/sessions
+   chosenfam.love/sessions
 
 Filing information for ${si.n||"your state"}:
 Residency required: ${si.res||"varies"}
@@ -372,9 +372,260 @@ Have your final decree reviewed before submission.
 ─────────────────────────────────────────────────`.trim();
 }
 
+// ─── HEART TO HEART COMPONENT ─────────────────────────────────────────────────
+function HeartToHeart({ onNavigate }) {
+  const [sec, setSec] = useState("intro");
+
+  const sections = [
+    { id:"intro",   label:"The truth"          },
+    { id:"weapons", label:"Children & conflict" },
+    { id:"coop",    label:"Shared costs"        },
+    { id:"broken",  label:"Broken vs. at war"   },
+  ];
+
+  const weaponsBlocks = [
+    {
+      title:"The loyalty bind",
+      body: `Every time a child hears something negative about a parent — every time they're asked to carry a message, or watch one parent's face change when the other is mentioned — that child learns that loving both people is dangerous.
+
+They start managing their parents' feelings instead of being children. That's not a metaphor. That's a developmental harm that shows up in therapy years later. In their relationships. In how they trust. In how they parent their own children.`,
+    },
+    {
+      title:"The cruelty is usually quiet",
+      body: `The sighing when the other parent is mentioned. The questions that fish for information. The subtle looks when a child says they had fun. The "of course she would do that" said without thinking. The birthday scheduled over the other parent's weekend. The support withheld when things get tense.
+
+None of these feel like weapons in the moment. All of them land like weapons in the child.`,
+    },
+    {
+      title:"What children actually need to hear",
+      body: `"Your mom loves you. I love you. We both love you. We made an adult decision that has nothing to do with you. You did not cause this. You cannot fix this. Your only job is to be a kid. We will both always be your parents. That part doesn't change."
+
+Children can survive a separation. What they cannot survive easily is watching two people they love destroy each other.`,
+    },
+    {
+      title:"The one question worth asking yourself",
+      body: `Before every decision, every message, every thing you tell your children or your attorney:
+
+"Is this in my child's interest — or is this in my interest dressed up as my child's interest?"
+
+Those two things feel identical when you're activated. They are not identical. The willingness to tell the difference is one of the most important things you can do for your children right now.`,
+    },
+  ];
+
+  const coopBlocks = [
+    {
+      title:"The honest framing",
+      body: `The cost of raising children doesn't belong to one parent or the other. It belongs to both of you.
+
+You made them together. They need to eat, be housed, go to school, see doctors, play sports, wear shoes, and have birthday parties in both of your homes.
+
+That's not a support obligation. That's parenthood.`,
+    },
+    {
+      title:"What cooperative cost-sharing looks like",
+      body: `Some families open a shared account — the kids account. Both parents contribute monthly based on their income. Childcare, medical co-pays, school supplies, activities — all come from there. Both parents can see the statements.
+
+The money lives outside the conflict. The kids benefit from both parents' income without anyone keeping score.`,
+    },
+    {
+      title:"What courts will actually approve",
+      body: `Judges will approve any financial arrangement you both agree to, as long as the children's documented needs are being met.
+
+The state formula is a baseline for conflict. It is not a ceiling on cooperation.
+
+The only people who live inside the state formula are people who couldn't agree on anything else.`,
+    },
+  ];
+
+  const brokenBlocks = [
+    {
+      head:"It's not the separation that harms children.",
+      color:C.sage,
+      body: `Decades of research are clear. Children of divorce are not destined to struggle. Children raised in cooperative separated households do as well as — and sometimes better than — children in intact high-conflict homes.
+
+The variable isn't the family structure. It's whether the adults around them are at war.`,
+    },
+    {
+      head:"What harms children is witnessed conflict.",
+      color:C.rose,
+      body: `Arguments overheard. Tension felt at every handoff. One parent refusing to speak to the other. The holiday weaponized. The parent who can't say the other's name without their body changing.
+
+Children are exquisitely sensitive to parental distress. They don't need to hear the words. They read everything else.`,
+    },
+    {
+      head:"What protects children is cooperation — even imperfect cooperation.",
+      color:C.navy,
+      body: `Separated parents who are civil to each other at pickup. Who can sit on the same bleachers. Who can call about a sick child without it becoming something else.
+
+None of this requires liking each other. It requires choosing, repeatedly, to put the child in front of the conflict.`,
+    },
+    {
+      head:"The long game.",
+      color:C.gold,
+      body: `Your children will grow up. They will remember how this felt — not the terms of the custody agreement, but the felt sense of whether they were safe. Whether the people who loved them most could be decent to each other.
+
+They will bring this into their own relationships. Their own conflicts. Their own families.
+
+How you do this is one of the most important things you'll ever model for them.
+
+That's the long game. That's the one worth playing.`,
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", scrollbarWidth:"none" }}>
+        {sections.map(s => (
+          <button key={s.id} onClick={() => setSec(s.id)} style={{
+            padding:"8px 14px", borderRadius:30, border:"none", cursor:"pointer",
+            fontSize:12, fontWeight:600, whiteSpace:"nowrap",
+            background: sec===s.id ? C.clay : C.warm,
+            color: sec===s.id ? C.white : C.muted,
+            transition:"all 0.15s", ...SANS,
+          }}>{s.label}</button>
+        ))}
+      </div>
+
+      {sec === "intro" && (
+        <div>
+          <div style={{ ...SERIF, fontSize:28, color:C.navy, lineHeight:1.25, marginBottom:16, fontWeight:600 }}>
+            A heart-to-heart<br/>before anything else.
+          </div>
+          <div style={{ width:40, height:3, background:C.gold, borderRadius:2, marginBottom:24 }} />
+          <Card bg={C.clayPl} accent="rgba(106,56,24,0.2)" style={{ marginBottom:20 }}>
+            <div style={{ ...SERIF, fontSize:20, color:C.clay, lineHeight:1.6, fontStyle:"italic", marginBottom:12 }}>
+              "Better to come from a broken home<br/>than to live in one."
+            </div>
+            <div style={{ fontSize:14, color:C.body, lineHeight:1.8, ...SANS }}>
+              That line is true. And it comes with a responsibility.
+              The separation isn't what harms children. The conflict is.
+              Which means how you do this matters as much as that you do it.
+            </div>
+          </Card>
+          <div style={{ fontSize:15, color:C.body, lineHeight:1.85, marginBottom:20, ...SANS }}>
+            ChosenFam is built to help you end a marriage — not to win one.
+            There are things that need to be said plainly before you build any legal document,
+            calculate any support figure, or negotiate anything. This is that conversation.
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {sections.slice(1).map(s => (
+              <button key={s.id} onClick={() => setSec(s.id)} style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"14px 18px", borderRadius:14, border:`1px solid ${C.border}`,
+                background:C.white, color:C.ink, cursor:"pointer", fontSize:14, ...SANS,
+              }}>
+                <span style={{ fontWeight:600 }}>{s.label}</span>
+                <span style={{ color:C.muted }}>→</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sec === "weapons" && (
+        <div>
+          <div style={{ ...SERIF, fontSize:26, color:C.navy, marginBottom:4, fontWeight:600 }}>Children and conflict.</div>
+          <div style={{ fontSize:14, color:C.muted, marginBottom:20, ...SANS }}>This is the hardest section. It needs to be said.</div>
+          <Card bg={C.rosePl} accent="rgba(140,32,48,0.18)" style={{ marginBottom:16 }}>
+            <div style={{ ...SERIF, fontSize:17, color:C.rose, lineHeight:1.65, marginBottom:12 }}>
+              Almost no one who does this knows they're doing it.
+            </div>
+            <div style={{ fontSize:14, color:C.body, lineHeight:1.8, ...SANS }}>
+              They think they're protecting their children. Their anger may be completely righteous.
+              None of that changes what happens to the child who is placed in the middle of it.
+            </div>
+          </Card>
+          {weaponsBlocks.map((b, i) => (
+            <Card key={i} style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:C.muted, marginBottom:8, ...SANS }}>{b.title}</div>
+              <div style={{ ...SERIF, fontSize:14, color:C.body, lineHeight:1.85, whiteSpace:"pre-line" }}>{b.body}</div>
+            </Card>
+          ))}
+          <Card bg={C.navy}>
+            <div style={{ ...SERIF, fontSize:17, color:C.white, lineHeight:1.65, fontStyle:"italic", marginBottom:10 }}>
+              Your children are watching you to learn what people do when something is hard and they're in pain.
+            </div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.75, ...SANS }}>
+              That's not a guilt trip. That's an invitation. How you do this is one of the most important things you'll ever model for them.
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {sec === "coop" && (
+        <div>
+          <div style={{ ...SERIF, fontSize:26, color:C.navy, marginBottom:4, fontWeight:600 }}>Children are a shared project.</div>
+          <div style={{ fontSize:14, color:C.muted, marginBottom:20, ...SANS }}>A different way to think about the money.</div>
+          <Card bg={C.sagePl} accent="rgba(46,92,58,0.15)" style={{ marginBottom:16 }}>
+            <div style={{ ...SERIF, fontSize:17, color:C.sage, lineHeight:1.65, marginBottom:12 }}>
+              The current child support system was designed for adversarial situations.
+            </div>
+            <div style={{ fontSize:14, color:C.body, lineHeight:1.8, ...SANS }}>
+              When cooperation is possible — even partially — there is a better framework.
+            </div>
+          </Card>
+          {coopBlocks.map((b, i) => (
+            <Card key={i} style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:C.muted, marginBottom:8, ...SANS }}>{b.title}</div>
+              <div style={{ ...SERIF, fontSize:14, color:C.body, lineHeight:1.85, whiteSpace:"pre-line" }}>{b.body}</div>
+            </Card>
+          ))}
+          <button onClick={() => onNavigate("build")} style={{
+            width:"100%", padding:"13px", borderRadius:40, border:"none",
+            background:`linear-gradient(135deg,${C.sage},#3C7848)`,
+            color:C.white, fontSize:14, fontWeight:700, cursor:"pointer", ...SANS,
+            boxShadow:`0 4px 16px rgba(46,92,58,0.25)`, marginTop:8,
+          }}>Start building the decree →</button>
+        </div>
+      )}
+
+      {sec === "broken" && (
+        <div>
+          <div style={{ ...SERIF, fontSize:26, color:C.navy, marginBottom:4, fontWeight:600 }}>Broken home. Or at war.</div>
+          <div style={{ fontSize:14, color:C.muted, marginBottom:20, ...SANS }}>What the research actually shows.</div>
+          <Card bg={C.goldPl} accent="rgba(176,112,16,0.2)" style={{ marginBottom:16 }}>
+            <div style={{ ...SERIF, fontSize:22, color:C.gold, lineHeight:1.5, fontStyle:"italic" }}>
+              "Better to come from a broken home than to live in one."
+            </div>
+          </Card>
+          {brokenBlocks.map((b, i) => (
+            <Card key={i} style={{ marginBottom:12, borderLeft:`4px solid ${b.color}` }}>
+              <div style={{ ...SERIF, fontSize:16, color:b.color, marginBottom:10, lineHeight:1.4 }}>{b.head}</div>
+              <div style={{ ...SERIF, fontSize:14, color:C.body, lineHeight:1.85, whiteSpace:"pre-line" }}>{b.body}</div>
+            </Card>
+          ))}
+          <Card bg={C.navy} style={{ marginBottom:20 }}>
+            <div style={{ ...SERIF, fontSize:18, color:C.white, lineHeight:1.7, fontStyle:"italic", marginBottom:12 }}>
+              "I would rather look back knowing I could have been ruthless than look back wishing I hadn't been."
+            </div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.75, ...SANS }}>
+              That choice is available to you right now. Every decision in this process is a chance to make it.
+            </div>
+          </Card>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            <button onClick={() => onNavigate("build")} style={{
+              padding:"13px", borderRadius:40, border:"none",
+              background:`linear-gradient(135deg,${C.navy},${C.navyMid})`,
+              color:C.white, fontSize:14, fontWeight:700, cursor:"pointer", ...SANS,
+              boxShadow:`0 4px 16px rgba(24,56,90,0.25)`,
+            }}>Start building my decree →</button>
+            <button onClick={() => window.open("https://calendly.com/thelovewarrior/chosen-fam-discovery-call","_blank")} style={{
+              padding:"13px", borderRadius:40, border:`1.5px solid ${C.teal}`,
+              background:"transparent", color:C.teal,
+              fontSize:13, fontWeight:700, cursor:"pointer", ...SANS,
+            }}>Book a free discovery call →</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 const NAV = [
   { id:"home",    label:"Home",     icon:"⚖" },
+  { id:"heart",   label:"Heart",    icon:"♡" },
   { id:"build",   label:"Build",    icon:"📋" },
   { id:"compare", label:"Compare",  icon:"◎" },
   { id:"sessions",label:"Sessions", icon:"🌿" },
@@ -392,7 +643,7 @@ const STRIPE = {
 };
 const CALENDLY = "https://calendly.com/thelovewarrior/chosen-fam-mediation-session";
 const DISCOVERY = "https://calendly.com/thelovewarrior/chosen-fam-discovery-call"; // your Calendly booking URL
-const EMAIL = "hello@chosenfam.com";
+const EMAIL = "hello@chosenfam.love";
 
 // ─── PROMO CODES ──────────────────────────────────────────────────────────────
 const PROMO_CODES = {
@@ -480,7 +731,7 @@ export default function ChosenFam() {
     const subject = encodeURIComponent(`${data.yourName||"Your partner"} has shared a ChosenFam decree draft with you`);
     const body = encodeURIComponent(
       `Hi,\n\n${data.yourName||"Your partner"} has filled out a proposed divorce decree on ChosenFam and is sharing it with you.\n\n` +
-      `You can fill out your own version independently at:\nhttps://chosenfam.com/build\n\n` +
+      `You can fill out your own version independently at:\nhttps://chosenfam.love/build\n\n` +
       `When you're both done, you'll be able to compare your two versions and see where you agree and where you'd benefit from a conversation.\n\n` +
       `No pressure. No login required. It's free.\n\n— ChosenFam`
     );
@@ -1016,7 +1267,7 @@ export default function ChosenFam() {
 I've filled out a proposed divorce decree on ChosenFam.
 Would you fill out your own version here? It's free and takes 15–30 minutes:
 
-https://chosenfam.com/build
+https://chosenfam.love/build
 
 When we're both done we can compare and see where we agree.`
                             );
@@ -1510,6 +1761,13 @@ When we're both done we can compare and see where we agree.`
         )}
 
         {/* ════ TERMS OF SERVICE ═══════════════════════════════════════ */}
+        {/* ════ HEART TO HEART ════════════════════════════════════════ */}
+        {screen === "heart" && (
+          <div className="enter">
+            <HeartToHeart onNavigate={(s)=>setScreen(s)} />
+          </div>
+        )}
+
         {screen === "terms" && (
           <div className="enter">
             <div style={{ ...SERIF, fontSize:26, color:C.navy, marginBottom:4, fontWeight:600 }}>
@@ -1567,7 +1825,7 @@ ChosenFam is not responsible for any costs, delays, or outcomes resulting from a
 
 We do not sell, share, or disclose your personal information to third parties except: (a) as necessary to provide services you have requested (e.g., sending your decree to a paralegal reviewer), (b) as required by law, or (c) with your explicit written consent.
 
-Documents generated through the platform are stored only as necessary to deliver your services and are not used for any other purpose. You may request deletion of your data at any time by contacting hello@chosenfam.com.`
+Documents generated through the platform are stored only as necessary to deliver your services and are not used for any other purpose. You may request deletion of your data at any time by contacting hello@chosenfam.love.`
               },
               {
                 title:"6. Scope of Services",
@@ -1593,7 +1851,7 @@ Mediator Document Review ($149): Refundable within 48 hours of purchase if revie
 
 Mediation Sessions: Single sessions are refundable if cancelled at least 24 hours before the scheduled time. Bundles and packages are refundable for unused sessions only. The session booking fee is non-refundable if cancelled with less than 24 hours notice.
 
-To request a refund, contact hello@chosenfam.com with your order information.`
+To request a refund, contact hello@chosenfam.love with your order information.`
               },
               {
                 title:"8. Agreement to These Terms",
@@ -1604,7 +1862,7 @@ By checking the acknowledgment box before generating your decree, you confirm th
 
 These terms are governed by the laws of the State of Illinois. Any disputes arising from your use of ChosenFam will be resolved through mediation before any court proceeding — which, given what we do, feels right.
 
-Questions? Contact us at hello@chosenfam.com`
+Questions? Contact us at hello@chosenfam.love`
               },
             ].map((section, i) => (
               <div key={i} style={{ marginBottom:20 }}>
@@ -1627,8 +1885,8 @@ Questions? Contact us at hello@chosenfam.com`
                 marginBottom:12 }}>
                 By using ChosenFam you agree to these terms. If you have questions,
                 email us at{" "}
-                <a href="mailto:hello@chosenfam.com"
-                  style={{ color:C.goldLt }}>hello@chosenfam.com</a>
+                <a href="mailto:hello@chosenfam.love"
+                  style={{ color:C.goldLt }}>hello@chosenfam.love</a>
               </div>
               <button onClick={()=>{ setTosAgreed(true); setScreen("build"); }}
                 style={{ width:"100%", padding:"12px", borderRadius:30, border:"none",
@@ -1652,9 +1910,9 @@ Questions? Contact us at hello@chosenfam.com`
             style={{ color:C.navy, textDecoration:"underline", cursor:"pointer" }}>
             Terms of Service
           </span>{" "}·{" "}
-          <a href="mailto:hello@chosenfam.com"
+          <a href="mailto:hello@chosenfam.love"
             style={{ color:C.navy, textDecoration:"underline" }}>
-            hello@chosenfam.com
+            hello@chosenfam.love
           </a>
         </div>
       </div>
@@ -1713,7 +1971,7 @@ Questions? Contact us at hello@chosenfam.com`
                 {
                   title:"Refunds",
                   color:C.clay,
-                  body:"Documents: refundable within 7 days if undelivered. Reviews: refundable within 48 hours if not yet begun. Sessions: refundable with 24+ hours notice. Contact hello@chosenfam.com for all refund requests."
+                  body:"Documents: refundable within 7 days if undelivered. Reviews: refundable within 48 hours if not yet begun. Sessions: refundable with 24+ hours notice. Contact hello@chosenfam.love for all refund requests."
                 },
               ].map((s,i) => (
                 <div key={i} style={{ marginBottom:16, paddingBottom:16,
@@ -1728,7 +1986,7 @@ Questions? Contact us at hello@chosenfam.com`
               <div style={{ background:C.navy, borderRadius:12, padding:"14px 16px" }}>
                 <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", lineHeight:1.6,
                   marginBottom:12 }}>
-                  Questions about these terms? Email us at hello@chosenfam.com
+                  Questions about these terms? Email us at hello@chosenfam.love
                 </div>
                 <button onClick={()=>{ setTosAgreed(true); setSTos(false); }}
                   style={{ width:"100%", padding:"12px", borderRadius:30, border:"none",
@@ -1839,7 +2097,7 @@ Questions? Contact us at hello@chosenfam.com`
                     </div>
                   </div>
                   <div style={{ fontSize:11, color:C.muted, lineHeight:1.6, fontStyle:"italic" }}>
-                    Questions? Email us at hello@chosenfam.com
+                    Questions? Email us at hello@chosenfam.love
                   </div>
                 </div>
                 <button onClick={()=>{ setSPDF(false); setPDFSub(false); setPDFEmail(""); }}
