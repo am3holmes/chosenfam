@@ -379,6 +379,7 @@ const NAV = [
   { id:"compare", label:"Compare",  icon:"◎" },
   { id:"sessions",label:"Sessions", icon:"🌿" },
   { id:"plans",   label:"Plans",    icon:"✦" },
+  { id:"terms",   label:"Terms",    icon:"◈" },
 ];
 
 // ─── CONFIG — replace these with your real links ─────────────────────────────
@@ -393,6 +394,13 @@ const CALENDLY = "https://calendly.com/thelovewarrior/chosen-fam-mediation-sessi
 const DISCOVERY = "https://calendly.com/thelovewarrior/chosen-fam-discovery-call"; // your Calendly booking URL
 const EMAIL = "hello@chosenfam.com";
 
+// ─── PROMO CODES ──────────────────────────────────────────────────────────────
+const PROMO_CODES = {
+  "LOVEFIRST": { discount:0.50, label:"50% off", desc:"Love First — 50% off any service" },
+  "CHOSEN10":  { discount:0.10, label:"10% off", desc:"ChosenFam — 10% off any service" },
+};
+const PRICES = { doc:29, review:149, session:400, bundle:1100, package:1800 };
+
 export default function ChosenFam() {
   const [screen, setScreen] = useState("home");
   const [state,  setState]  = useState("");
@@ -403,9 +411,15 @@ export default function ChosenFam() {
   const [copied, setCopied] = useState(false);
   const [emailSent, setES]  = useState(false);
   const [partnerEmail, setPE] = useState("");
-  const [showPDFModal, setSPDF] = useState(false);
-  const [pdfEmail, setPDFEmail] = useState("");
+  const [showPDFModal, setSPDF]   = useState(false);
+  const [pdfEmail, setPDFEmail]   = useState("");
   const [pdfSubmitted, setPDFSub] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoInput, setPromoIn]  = useState("");
+  const [promoApplied, setPromoA] = useState(null);
+  const [promoError, setPromoErr] = useState("");
+  const [tosAgreed,  setTosAgreed] = useState(false);
+  const [showTosModal, setSTos]    = useState(false);
 
   const set = (id, v) => setData(d => ({ ...d, [id]: v }));
   const si  = STATES[state];
@@ -415,6 +429,42 @@ export default function ChosenFam() {
   const progress = Math.round((completedSections / DECREE_SECTIONS.length) * 100);
 
   const decree = generateDecree(data, si);
+
+  // Promo code handler
+  const applyPromo = () => {
+    const code_upper = promoInput.trim().toUpperCase();
+    if (PROMO_CODES[code_upper]) {
+      setPromoA({ code: code_upper, ...PROMO_CODES[code_upper] });
+      setPromoErr("");
+    } else {
+      setPromoErr("That code isn't valid. Try LOVEFIRST or CHOSEN50.");
+      setPromoA(null);
+    }
+  };
+
+  // Discounted price helper
+  const discountedPrice = (key) => {
+    if (!promoApplied) return PRICES[key];
+    return Math.round(PRICES[key] * (1 - promoApplied.discount));
+  };
+
+  // Open Stripe with promo awareness
+  // Since Stripe handles coupons server-side, we show the discounted price
+  // and include a note — you manually honour it by refunding the difference
+  // until you set up Stripe coupons in the dashboard
+  const openStripe = (key) => {
+    const link = STRIPE[key];
+    if (!link || link.startsWith("YOUR_")) {
+      window.open("mailto:" + EMAIL + "?subject=ChosenFam Session Booking", "_blank");
+      return;
+    }
+    if (promoApplied) {
+      // Open with promo note in URL for tracking
+      window.open(link + "?client_reference_id=" + promoApplied.code, "_blank");
+    } else {
+      window.open(link, "_blank");
+    }
+  };
 
   const copyDecree = () => {
     navigator.clipboard?.writeText(decree);
@@ -675,13 +725,40 @@ export default function ChosenFam() {
 
                 {/* Generate / send */}
                 <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:10 }}>
+                  {/* ToS checkbox */}
+                  <div style={{ background:C.navyLt, borderRadius:12, padding:"14px 16px",
+                    border:`1px solid rgba(36,80,128,0.15)` }}>
+                    <div onClick={()=>setTosAgreed(t=>!t)}
+                      style={{ display:"flex", gap:12, alignItems:"flex-start", cursor:"pointer" }}>
+                      <div style={{ width:20, height:20, borderRadius:5, flexShrink:0, marginTop:1,
+                        background:tosAgreed?C.sage:"transparent",
+                        border:`2px solid ${tosAgreed?C.sage:C.border}`,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:12, color:C.white, fontWeight:700, transition:"all 0.15s" }}>
+                        {tosAgreed?"✓":""}
+                      </div>
+                      <div style={{ fontSize:12, color:C.body, lineHeight:1.65 }}>
+                        I understand that ChosenFam provides legal orientation — not legal advice —
+                        and that no attorney-client relationship is formed. I have read and agree to the{" "}
+                        <span onClick={e=>{e.stopPropagation();setSTos(true);}}
+                          style={{ color:C.navy, textDecoration:"underline", cursor:"pointer" }}>
+                          Terms of Service and Confidentiality Agreement
+                        </span>.
+                      </div>
+                    </div>
+                  </div>
                   <Btn v="gold" onClick={() => setSD(true)}
-                    disabled={!data.yourName && !data.partnerName}>
+                    disabled={!data.yourName || !tosAgreed}>
                     Generate my decree →
                   </Btn>
-                  {(!data.yourName) && (
+                  {!data.yourName && (
                     <div style={{ fontSize:12, color:C.muted, textAlign:"center" }}>
                       Complete at least your name and state to generate.
+                    </div>
+                  )}
+                  {data.yourName && !tosAgreed && (
+                    <div style={{ fontSize:12, color:C.muted, textAlign:"center" }}>
+                      Please agree to the Terms of Service to continue.
                     </div>
                   )}
                 </div>
@@ -829,7 +906,10 @@ export default function ChosenFam() {
                           color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
                           boxShadow:"0 4px 14px rgba(24,56,90,0.25)",
                           fontFamily:"'DM Sans',sans-serif" }}>
-                        Get court-ready document — $29 →
+                        Get court-ready document —{" "}
+                        {promoApplied
+                          ? <span><s style={{opacity:0.6}}>$29</s> ${discountedPrice("doc")}</span>
+                          : "$29"} →
                       </button>
                     </div>
 
@@ -850,16 +930,16 @@ export default function ChosenFam() {
                         ambiguous language, and anything a judge would question.
                         Marked-up version with plain-English notes within 48 hours.
                       </div>
-                      <button onClick={()=>{
-                          setSD(false);
-                          window.open(STRIPE.review,"_blank");
-                        }}
+                      <button onClick={()=>{ setSD(false); openStripe("review"); }}
                         style={{ width:"100%", padding:"11px", borderRadius:30, border:"none",
                           background:`linear-gradient(135deg,${C.gold},${C.goldMid})`,
                           color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
                           boxShadow:"0 4px 14px rgba(181,120,24,0.25)",
                           fontFamily:"'DM Sans',sans-serif" }}>
-                        Get mediator review — $149 →
+                        Get mediator review —{" "}
+                        {promoApplied
+                          ? <><s style={{opacity:0.6}}>$149</s> ${discountedPrice("review")}</>
+                          : "$149"} →
                       </button>
                     </div>
 
@@ -1126,7 +1206,24 @@ When we're both done we can compare and see where we agree.`
                       )}
                     </div>
                   </div>
-                  <div style={{ ...SERIF, fontSize:24, color:session.color, fontWeight:700 }}>{session.price}</div>
+                  <div>
+                    {promoApplied && (
+                      <div style={{fontSize:13,color:C.muted,textDecoration:"line-through",textAlign:"right"}}>
+                        {session.price}
+                      </div>
+                    )}
+                    <div style={{ ...SERIF, fontSize:24,
+                      color:promoApplied?C.sage:session.color, fontWeight:700 }}>
+                      {promoApplied
+                        ? "$" + ({"$400":discountedPrice("session"),"$1,100":discountedPrice("bundle"),"$1,800":discountedPrice("package")}[session.price]||session.price.replace("$",""))
+                        : session.price}
+                    </div>
+                    {promoApplied && (
+                      <div style={{fontSize:10,color:C.sage,fontWeight:700,textAlign:"right"}}>
+                        {promoApplied.label}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={{ fontSize:13, color:C.body, lineHeight:1.65, marginBottom:12 }}>{session.desc}</div>
                 {session.includes.map((f, j) => (
@@ -1137,17 +1234,14 @@ When we're both done we can compare and see where we agree.`
                   </div>
                 ))}
                 <button onClick={()=>{
-                    const links = {
-                      "Single Session": STRIPE.session,
-                      "3-Session Bundle": STRIPE.bundle,
-                      "Decree Package": STRIPE.package,
+                    const keyMap = {
+                      "Single Session": "session",
+                      "3-Session Bundle": "bundle",
+                      "Decree Package": "package",
                     };
-                    const link = links[session.name];
-                    if(link && link !== "YOUR_STRIPE_LINK_400" && !link.startsWith("YOUR_")) {
-                      window.open(link, "_blank");
-                    } else {
-                      window.open(CALENDLY !== "YOUR_CALENDLY_LINK" ? CALENDLY : "mailto:" + EMAIL + "?subject=ChosenFam Session Booking", "_blank");
-                    }
+                    const key = keyMap[session.name];
+                    if(key) { openStripe(key); }
+                    else { window.open(CALENDLY,"_blank"); }
                   }}
                   style={{ width:"100%", marginTop:14, padding:"12px 0", borderRadius:36,
                   border:session.highlight?"none":`1.5px solid ${session.color}`,
@@ -1160,6 +1254,39 @@ When we're both done we can compare and see where we agree.`
               </div>
             ))}
 
+            {promoApplied && (
+              <div style={{ background:C.sagePl, borderRadius:12, padding:"12px 16px",
+                border:`1px solid rgba(46,92,58,0.2)`, marginBottom:14,
+                display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div style={{ fontSize:13, color:C.sage, fontWeight:700 }}>
+                  ✓ {promoApplied.label} applied — {promoApplied.code}
+                </div>
+                <div style={{ fontSize:12, color:C.muted }}>Prices updated above</div>
+              </div>
+            )}
+            {!promoApplied && (
+              <div style={{ background:C.goldPl, borderRadius:12, padding:"12px 16px",
+                border:`1px solid rgba(181,120,24,0.15)`, marginBottom:14 }}>
+                <div style={{ fontSize:12, color:C.gold, fontWeight:700, marginBottom:6 }}>
+                  Have a promo code?
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={promoInput} onChange={e=>setPromoIn(e.target.value.toUpperCase())}
+                    onKeyDown={e=>e.key==="Enter"&&applyPromo()}
+                    placeholder="Enter code" maxLength={20}
+                    style={{ flex:1, padding:"9px 12px", borderRadius:10,
+                      border:`1px solid ${C.border}`, background:C.white,
+                      fontSize:13, color:C.ink, outline:"none",
+                      fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:1 }}/>
+                  <button onClick={applyPromo} style={{
+                    padding:"9px 16px", borderRadius:30, border:"none",
+                    background:C.gold, color:C.white,
+                    fontSize:12, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif" }}>Apply</button>
+                </div>
+                {promoError && <div style={{fontSize:11,color:C.rose,marginTop:4}}>{promoError}</div>}
+              </div>
+            )}
             <div style={{ fontSize:12, color:C.muted, textAlign:"center", lineHeight:1.7,
               fontStyle:"italic", marginBottom:14 }}>
               Not sure which to choose? Start with a free discovery call.<br/>
@@ -1187,13 +1314,62 @@ When we're both done we can compare and see where we agree.`
               Start free. Add what you need.
             </div>
 
-            <Card bg={C.navyLt} accent="rgba(36,80,128,0.15)" style={{ marginBottom:20 }}>
+            <Card bg={C.navyLt} accent="rgba(36,80,128,0.15)" style={{ marginBottom:16 }}>
               <div style={{ fontSize:13, color:C.body, lineHeight:1.75 }}>
                 Average contested divorce: <strong style={{ color:C.rose }}>$47,000</strong> over 18 months.
                 Our complete Decree Package: <strong style={{ color:C.sage }}>$1,800</strong>.
                 The decree builder is always free.
               </div>
             </Card>
+
+            {/* ── PROMO CODE BLOCK ── */}
+            {!promoApplied ? (
+              <div style={{ background:C.goldPl, borderRadius:14, padding:"14px 16px",
+                border:`1px solid rgba(181,120,24,0.2)`, marginBottom:16 }}>
+                <div style={{ fontWeight:700, fontSize:13, color:C.gold, marginBottom:6 }}>
+                  Have a promo code?
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={promoInput} onChange={e=>setPromoIn(e.target.value.toUpperCase())}
+                    onKeyDown={e=>e.key==="Enter"&&applyPromo()}
+                    placeholder="Enter code" maxLength={20}
+                    style={{ flex:1, padding:"10px 14px", borderRadius:10,
+                      border:`1.5px solid ${promoError?C.rose:C.border}`,
+                      background:C.white, fontSize:14, color:C.ink, outline:"none",
+                      fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase",
+                      letterSpacing:1 }}/>
+                  <button onClick={applyPromo} style={{
+                    padding:"10px 18px", borderRadius:30, border:"none",
+                    background:`linear-gradient(135deg,${C.gold},${C.goldMid})`,
+                    color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif" }}>
+                    Apply
+                  </button>
+                </div>
+                {promoError && (
+                  <div style={{ fontSize:12, color:C.rose, marginTop:6 }}>{promoError}</div>
+                )}
+              </div>
+            ) : (
+              <div style={{ background:C.sagePl, borderRadius:14, padding:"14px 16px",
+                border:`1px solid rgba(46,92,58,0.2)`, marginBottom:16,
+                display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:13, color:C.sage }}>
+                    ✓ {promoApplied.label} applied — {promoApplied.code}
+                  </div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>
+                    {promoApplied.desc}
+                  </div>
+                </div>
+                <button onClick={()=>{ setPromoA(null); setPromoIn(""); }}
+                  style={{ background:"transparent", border:"none", color:C.muted,
+                    cursor:"pointer", fontSize:12, textDecoration:"underline",
+                    fontFamily:"'DM Sans',sans-serif" }}>
+                  Remove
+                </button>
+              </div>
+            )}
 
             {[
               {
@@ -1248,7 +1424,26 @@ When we're both done we can compare and see where we agree.`
                 )}
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
                   <div style={{ fontWeight:700, fontSize:16, color:p.color }}>{p.name}</div>
-                  <div style={{ ...SERIF, fontSize:22, color:p.color, fontWeight:700 }}>{p.price}</div>
+                  <div>
+                  {promoApplied && p.price !== "$0" && (
+                    <div style={{ fontSize:12, color:C.muted, textDecoration:"line-through",
+                      textAlign:"right" }}>{p.price}</div>
+                  )}
+                  <div style={{ ...SERIF, fontSize:22, color:promoApplied&&p.price!=="$0"?C.sage:p.color, fontWeight:700 }}>
+                    {promoApplied && p.price !== "$0"
+                      ? "$" + ({
+                          "Court-Ready Document": discountedPrice("doc"),
+                          "Mediator Document Review": discountedPrice("review"),
+                          "Free": 0,
+                        }[p.name] || p.price.replace("$",""))
+                      : p.price}
+                  </div>
+                  {promoApplied && p.price !== "$0" && (
+                    <div style={{ fontSize:10, color:C.sage, fontWeight:700, textAlign:"right" }}>
+                      {promoApplied.label}
+                    </div>
+                  )}
+                </div>
                 </div>
                 <div style={{ fontSize:13, color:C.body, lineHeight:1.65, marginBottom:12 }}>{p.desc}</div>
                 {p.features.map((f, j) => (
@@ -1268,11 +1463,9 @@ When we're both done we can compare and see where we agree.`
                 )}
                 <button onClick={()=>{
                     if(p.price==="$0") { setScreen("build"); return; }
-                    if(p.price==="$29") { setSPDF(true); return; }
-                    const links = { "$149":STRIPE.review };
-                    const link = links[p.price];
-                    if(link && !link.startsWith("YOUR_")) window.open(link,"_blank");
-                    else window.open("mailto:"+EMAIL+"?subject=ChosenFam "+p.name,"_blank");
+                    if(p.name==="Court-Ready Document") { setSPDF(true); return; }
+                    if(p.name==="Mediator Document Review") { openStripe("review"); return; }
+                    window.open("mailto:"+EMAIL+"?subject=ChosenFam "+p.name,"_blank");
                   }}
                   style={{ width:"100%", marginTop:14, padding:"12px 0", borderRadius:36,
                   border:p.highlight?"none":`1.5px solid ${p.color}`,
@@ -1316,7 +1509,247 @@ When we're both done we can compare and see where we agree.`
           </div>
         )}
 
+        {/* ════ TERMS OF SERVICE ═══════════════════════════════════════ */}
+        {screen === "terms" && (
+          <div className="enter">
+            <div style={{ ...SERIF, fontSize:26, color:C.navy, marginBottom:4, fontWeight:600 }}>
+              Terms of Service
+            </div>
+            <div style={{ fontSize:13, color:C.muted, marginBottom:20 }}>
+              Last updated: May 2026 · Chosen Fam Mediation · chosenfam.com
+            </div>
+            {[
+              {
+                title:"1. Legal Orientation — Not Legal Advice",
+                color:C.rose,
+                body:`ChosenFam provides legal orientation, educational tools, and facilitation services. We do not provide legal advice, and no attorney-client relationship is formed through your use of this platform or through any mediation session, document review, or communication with ChosenFam staff or facilitators.
+
+The decree templates, calculators, and guidance generated by ChosenFam are starting points for discussion — not final legal documents. We strongly recommend having your completed decree reviewed by a licensed attorney or your county's self-help legal clinic before filing with any court.
+
+Nothing on this platform constitutes legal advice. If you need legal advice, please consult a licensed family law attorney in your state.`
+              },
+              {
+                title:"2. Mediator Confidentiality",
+                color:C.navy,
+                body:`All communications made in connection with a ChosenFam mediation session are confidential. This includes:
+
+◈ Statements made by either party during a session
+◈ Documents prepared specifically for and in the course of mediation
+◈ Any admissions, proposals, or offers made during mediation
+◈ Notes and records created by the mediator during the process
+
+This confidentiality is grounded in the mediation privilege statutes of most US states and the Uniform Mediation Act (where adopted). Mediation communications are generally not admissible as evidence in any court proceeding.
+
+Exceptions to confidentiality exist where: (a) disclosure is required to prevent a crime or harm to a person, (b) disclosure is required by law, or (c) all parties and the mediator agree in writing to disclosure.`
+              },
+              {
+                title:"3. Mediator Will Not Testify",
+                color:C.teal,
+                body:`ChosenFam mediators will not voluntarily testify in any court, arbitration, or administrative proceeding about any communication made during a mediation session, or about observations made in the course of mediation.
+
+If subpoenaed, ChosenFam mediators will assert all applicable privileges under state and federal law, including mediator privilege and mediation confidentiality protections.
+
+This protection applies to all parties equally. Neither party may waive this privilege unilaterally — waiver requires the agreement of all parties and the mediator.`
+              },
+              {
+                title:"4. No Guarantee of Court Acceptance",
+                color:C.gold,
+                body:`ChosenFam generates decree templates and provides educational guidance based on your inputs. We cannot guarantee that any document generated through ChosenFam will be accepted by any court, judge, or clerk.
+
+Court acceptance depends on many factors outside our control, including state-specific requirements, county-specific formatting rules, judicial discretion, and the completeness of your agreement. We strongly recommend review by a legal professional before filing.
+
+ChosenFam is not responsible for any costs, delays, or outcomes resulting from a court's rejection or modification of any document generated through this platform.`
+              },
+              {
+                title:"5. Confidentiality of Your Information",
+                color:C.sage,
+                body:`Information you provide through ChosenFam — including your name, the names of your children, financial information, and the content of your decree — is kept strictly confidential.
+
+We do not sell, share, or disclose your personal information to third parties except: (a) as necessary to provide services you have requested (e.g., sending your decree to a paralegal reviewer), (b) as required by law, or (c) with your explicit written consent.
+
+Documents generated through the platform are stored only as necessary to deliver your services and are not used for any other purpose. You may request deletion of your data at any time by contacting hello@chosenfam.com.`
+              },
+              {
+                title:"6. Scope of Services",
+                color:C.clay,
+                body:`ChosenFam offers the following services:
+
+◈ Decree Builder: An educational tool that generates a proposed divorce decree template based on your inputs. This is a starting point for discussion — not a final legal document.
+
+◈ Court-Ready Document ($29): Formatting and delivery of your completed decree as a structured document. This is document formatting, not legal review.
+
+◈ Mediator Document Review ($149): A certified mediator reviews your decree for completeness, clarity, and workability. This is not legal advice.
+
+◈ Mediation Sessions ($400–$1,800): Facilitated conversations to help parties reach mutual agreement. Mediators are neutral facilitators, not advocates for either party.
+
+◈ Group Coaching and Inward Bound: Educational and support programs for individuals and families navigating separation.`
+              },
+              {
+                title:"7. Refund Policy",
+                color:C.navy,
+                body:`Court-Ready Document ($29): Refundable within 7 days if not yet delivered. After delivery, refunds are available if you can demonstrate the document was materially defective.
+
+Mediator Document Review ($149): Refundable within 48 hours of purchase if review has not yet begun. Once delivered, no refund is available, but we will provide one free revision if you identify specific issues.
+
+Mediation Sessions: Single sessions are refundable if cancelled at least 24 hours before the scheduled time. Bundles and packages are refundable for unused sessions only. The session booking fee is non-refundable if cancelled with less than 24 hours notice.
+
+To request a refund, contact hello@chosenfam.com with your order information.`
+              },
+              {
+                title:"8. Agreement to These Terms",
+                color:C.sage,
+                body:`By using ChosenFam — including the decree builder, document review, mediation sessions, or any other service — you agree to these Terms of Service.
+
+By checking the acknowledgment box before generating your decree, you confirm that you have read, understood, and agreed to these terms, including the confidentiality provisions, the limitation on legal advice, and the mediator's privilege not to testify.
+
+These terms are governed by the laws of the State of Illinois. Any disputes arising from your use of ChosenFam will be resolved through mediation before any court proceeding — which, given what we do, feels right.
+
+Questions? Contact us at hello@chosenfam.com`
+              },
+            ].map((section, i) => (
+              <div key={i} style={{ marginBottom:20 }}>
+                <div style={{ fontWeight:700, fontSize:15, color:section.color,
+                  marginBottom:8, paddingBottom:8,
+                  borderBottom:`2px solid ${section.color}20` }}>
+                  {section.title}
+                </div>
+                <div style={{ fontSize:13, color:C.body, lineHeight:1.85,
+                  whiteSpace:"pre-line" }}>
+                  {section.body}
+                </div>
+              </div>
+            ))}
+
+            {/* Agreement confirmation */}
+            <div style={{ background:C.navy, borderRadius:14, padding:"16px 18px",
+              marginTop:8 }}>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.7,
+                marginBottom:12 }}>
+                By using ChosenFam you agree to these terms. If you have questions,
+                email us at{" "}
+                <a href="mailto:hello@chosenfam.com"
+                  style={{ color:C.goldLt }}>hello@chosenfam.com</a>
+              </div>
+              <button onClick={()=>{ setTosAgreed(true); setScreen("build"); }}
+                style={{ width:"100%", padding:"12px", borderRadius:30, border:"none",
+                  background:`linear-gradient(135deg,${C.sage},${C.sageMid})`,
+                  color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                  fontFamily:"'DM Sans',sans-serif" }}>
+                I agree — take me to the decree builder →
+              </button>
+            </div>
+          </div>
+        )}
+
       </main>
+
+      {/* ── STICKY FOOTER ── */}
+      <div style={{ background:C.white, borderTop:`1px solid ${C.border}`,
+        padding:"12px 18px", textAlign:"center", position:"sticky", bottom:0, zIndex:50 }}>
+        <div style={{ fontSize:11, color:C.muted, lineHeight:1.6 }}>
+          ChosenFam · Legal orientation, not legal advice · All mediation communications are confidential ·{" "}
+          <span onClick={()=>setScreen("terms")}
+            style={{ color:C.navy, textDecoration:"underline", cursor:"pointer" }}>
+            Terms of Service
+          </span>{" "}·{" "}
+          <a href="mailto:hello@chosenfam.com"
+            style={{ color:C.navy, textDecoration:"underline" }}>
+            hello@chosenfam.com
+          </a>
+        </div>
+      </div>
+
+      {/* ── TERMS OF SERVICE QUICK-VIEW MODAL ── */}
+      {showTosModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(26,23,20,0.8)",
+          zIndex:400, display:"flex", alignItems:"flex-start", justifyContent:"center",
+          padding:20, overflowY:"auto" }}
+          onClick={e=>{ if(e.target===e.currentTarget) setSTos(false); }}>
+          <div style={{ background:C.white, borderRadius:20, width:"100%", maxWidth:500,
+            maxHeight:"88vh", overflow:"auto", boxShadow:"0 24px 80px rgba(0,0,0,0.5)" }}>
+
+            {/* Modal header */}
+            <div style={{ padding:"16px 20px", borderBottom:`1px solid ${C.border}`,
+              position:"sticky", top:0, background:C.white, zIndex:1,
+              display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ ...SERIF, fontSize:18, color:C.navy, fontWeight:600 }}>
+                Terms of Service
+              </div>
+              <button onClick={()=>setSTos(false)} style={{
+                background:"transparent", border:`1px solid ${C.border}`,
+                borderRadius:30, padding:"6px 14px", fontSize:12,
+                color:C.muted, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                Close
+              </button>
+            </div>
+
+            <div style={{ padding:"20px" }}>
+              {[
+                {
+                  title:"Not Legal Advice",
+                  color:C.rose,
+                  body:"ChosenFam provides legal orientation and educational tools — not legal advice. No attorney-client relationship is formed. The decree templates generated are starting points for discussion. Have your final decree reviewed by a licensed attorney or your county's self-help legal clinic before filing."
+                },
+                {
+                  title:"Mediator Confidentiality",
+                  color:C.navy,
+                  body:"All communications made during a ChosenFam mediation session are confidential and are not admissible as evidence in any court proceeding. This is grounded in mediation privilege statutes and the Uniform Mediation Act."
+                },
+                {
+                  title:"Mediator Will Not Testify",
+                  color:C.teal,
+                  body:"ChosenFam mediators will not voluntarily testify in any court or legal proceeding about communications made during mediation. If subpoenaed, all applicable mediator privilege protections will be asserted."
+                },
+                {
+                  title:"No Guarantee of Court Acceptance",
+                  color:C.gold,
+                  body:"ChosenFam cannot guarantee that any document will be accepted by any court. Court acceptance depends on factors outside our control including state requirements, judicial discretion, and the completeness of your agreement."
+                },
+                {
+                  title:"Your Information is Confidential",
+                  color:C.sage,
+                  body:"We do not sell or share your personal information. Your decree content, financial information, and personal details are kept strictly confidential and used only to deliver the services you've requested."
+                },
+                {
+                  title:"Refunds",
+                  color:C.clay,
+                  body:"Documents: refundable within 7 days if undelivered. Reviews: refundable within 48 hours if not yet begun. Sessions: refundable with 24+ hours notice. Contact hello@chosenfam.com for all refund requests."
+                },
+              ].map((s,i) => (
+                <div key={i} style={{ marginBottom:16, paddingBottom:16,
+                  borderBottom:i<5?`1px solid ${C.warm}`:"none" }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:s.color, marginBottom:5 }}>
+                    {s.title}
+                  </div>
+                  <div style={{ fontSize:12, color:C.body, lineHeight:1.75 }}>{s.body}</div>
+                </div>
+              ))}
+
+              <div style={{ background:C.navy, borderRadius:12, padding:"14px 16px" }}>
+                <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", lineHeight:1.6,
+                  marginBottom:12 }}>
+                  Questions about these terms? Email us at hello@chosenfam.com
+                </div>
+                <button onClick={()=>{ setTosAgreed(true); setSTos(false); }}
+                  style={{ width:"100%", padding:"12px", borderRadius:30, border:"none",
+                    background:`linear-gradient(135deg,${C.sage},${C.sageMid})`,
+                    color:C.white, fontSize:13, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif" }}>
+                  I agree to these terms ✓
+                </button>
+              </div>
+
+              <div style={{ textAlign:"center", marginTop:12 }}>
+                <span onClick={()=>{ setSTos(false); setScreen("terms"); }}
+                  style={{ fontSize:11, color:C.navy, textDecoration:"underline",
+                    cursor:"pointer" }}>
+                  Read the full Terms of Service →
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── PDF EMAIL CAPTURE MODAL ── */}
       {showPDFModal && (
